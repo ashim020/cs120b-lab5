@@ -1,7 +1,7 @@
 /*	Author: Andrew Shim
  *  Partner(s) Name: 
  *	Lab Section: 21
- *	Assignment: Lab # 5  Exercise # 2
+ *	Assignment: Lab # 5  Exercise # 1
  *	Exercise Description: [optional - include for your own benefit]
  *
  *	I acknowledge all content contained herein, excluding template or example
@@ -12,90 +12,37 @@
 #include "simAVRHeader.h"
 #endif
 
-enum States {Start, INIT, INC, DEC, RESET, S1, S2, S3} state;
-void Tick() {
-    switch(state) {
-        case Start:
-	    state = INIT;
-	    break;
-	case S1:
-	    if ((PINA & 0x03) == 0x01) {
-	        state = S1;
-	    }
-	    else if ((PINA & 0x03) == 0x02) {
-                state = DEC;
-	    }
-	    else if ((PINA & 0x03) == 0x03) {
-		state = RESET;
-            }
-	    else if ((PINA & 0x03) == 0x00) {
-		state = INIT;
-	    }
-	    break;
-	case S2:
-	    if ((PINA & 0x03) == 0x01) {
-	        state = INC;
-	    }
-	    else if ((PINA & 0x03) == 0x02) {
-                state = S2;
-	    }
-	    else if ((PINA & 0x03) == 0x03) {
-		state = RESET;
-            }
-	    else if ((PINA & 0x03) == 0x00) {
-		state = INIT;
-	    }
-	    break;
-	case S3:
-	    if ((PINA & 0x03) == 0x00) {
-	        state = INIT;
-	    }
-	    else {
-		state = S3;
-	    }
-	    break;
-	case INC:
-	    state = S1;
-	    break;
-	case DEC:
-	    state = S2;
-	    break;
-	case RESET:
-	    state = s3;
-	    break;
-	default:
-	    state = INIT;
-	    break;
-    }
-    switch(state) {
-	case INIT:
-	    break;
-	case INC:
-	    if (PORTC < 9) {
-                PORTC += 1;
-	    }
-            break;
-	case DEC:
-	    if (PORTC > 0) {
-		PORTC -= 1;
-	    }
-	    break;
-	case RESET:
-	    PORTC = 0x00;
-	    break;
-	default:
-	    PORTC = 0x07;
-	    break;
-    }
-}
-	    
 int main(void) {
     /* Insert DDR and PORT initializations */
     DDRA = 0x00; PORTA = 0xFF;
-    DDRC = 0xFF; PORTC = 0x07;
+    DDRC = 0xFF; PORTC = 0x00;
+    unsigned char tmpA = 0x00;
+    unsigned char tmpC = 0x00;
     /* Insert your solution below */
     while (1) {
-        Tick();
+        tmpA = ~PINA;
+	if (((tmpA & 0x0D) == 0x0D) || ((tmpA & 0x0E) == 0x0E) || ((tmpA & 0x0F) == 0x0F)) {
+            tmpC = 0x3F;
+	}
+	else if (((tmpA & 0x0A) == 0x0A) || ((tmpA & 0x0B) == 0x0B) || ((tmpA & 0x0C) == 0x0C)) {
+	    tmpC = 0x3E;
+	}
+	else if (((tmpA & 0x07) == 0x07) || ((tmpA & 0x08) == 0x08) || ((tmpA & 0x09) == 0x09)) {
+	    tmpC = 0x3C;
+	}
+	else if (((tmpA & 0x05) == 0x05) || ((tmpA & 0x06) == 0x06)) {
+	    tmpC = 0x38;
+	}
+	else if (((tmpA & 0x03) == 0x03) || ((tmpA & 0x04) == 0x04)) {
+	    tmpC = 0x70;
+	}
+	else if (((tmpA & 0x01) == 0x01) || ((tmpA & 0x02) == 0x02)) {
+	    tmpC = 0x60;
+	}
+	else {
+	    tmpC = 0x40;
+	}
+	PORTC = tmpC;
     }
     return 1;
 }
